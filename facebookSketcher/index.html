@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        body {
+            background-image: url("pics/OIP.jpg");
+            background-size: 500px;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+</head>
+<body style="margin: 0; display: block">
+
+<canvas id="canvas">Oooohh nooooo! Your browser is not supported!</canvas>
+
+<script>
+    let
+        canvas = document.getElementById('canvas'),
+        context = canvas.getContext('2d'),
+        isMouseDown = false,
+        coords = [],
+        radius = 5,
+        repeatSpeed = 10;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    canvas.addEventListener('mousedown', function () {
+        isMouseDown = true;
+        console.log("MOUSE DOWN");
+    });
+    canvas.addEventListener('mouseup', function () {
+        isMouseDown = false;
+        context.beginPath();
+        coords.push('mouseup');
+        console.log("MOUSE UP");
+    });
+    context.lineWidth = radius * 2;
+    canvas.addEventListener('mousemove', function (e) {
+        if (isMouseDown) {
+            coords.push([e.clientX, e.clientY]);
+            write(e);
+        } else {
+            console.log("JUST MOVING THE MOUSE")
+        }
+    });
+
+    function write(e) {
+        context.lineTo(e.clientX, e.clientY);
+        context.stroke();
+
+        context.beginPath();
+        context.arc(e.clientX, e.clientY, radius, 0, 2 * Math.PI);
+        context.fill();
+
+        context.beginPath();
+        context.moveTo(e.clientX, e.clientY);
+        console.log("WRITING----------------")
+    }
+
+    function clear() {
+        context.fillStyle = 'white';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.beginPath();
+        context.fillStyle = 'black';
+    }
+
+    function save() {
+        localStorage.setItem('coords', JSON.stringify(coords));
+    }
+
+    function replay() {
+        let timer = setInterval(function () {
+            if (!coords.length) {
+                clearInterval(timer);
+                context.beginPath();
+                return;
+            }
+
+            let crd = coords.shift(),
+                e = {
+                    clientX: crd["0"],
+                    clientY: crd["1"]
+                };
+            write(e);
+        }, repeatSpeed);
+    }
+
+    document.addEventListener("keydown", function (e) {
+        if (e.keyCode === 83) {
+            // save
+            save();
+            console.log("SAVED");
+        }
+        if (e.keyCode === 82) {
+            // replay
+            console.log("REPLAYING.....");
+
+            coords = JSON.parse(localStorage.getItem('coords'));
+
+            clear();
+            replay();
+        }
+        if (e.keyCode === 67) {
+            // clear
+            clear();
+            coords.length = 0;
+            console.log("CLEARED");
+        }
+    });
+</script>
+
+</body>
+</html>
